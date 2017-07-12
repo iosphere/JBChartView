@@ -40,6 +40,7 @@ static UIColor *kJBBarChartViewDefaultBarColor = nil;
 @property (nonatomic, strong) JBChartVerticalSelectionView *verticalSelectionView;
 @property (nonatomic, assign) BOOL verticalSelectionViewVisible;
 @property (nonatomic, assign) BOOL reloading;
+@property (nonatomic, assign) BOOL delayReload;
 
 // Initialization
 - (void)construct;
@@ -120,11 +121,19 @@ static UIColor *kJBBarChartViewDefaultBarColor = nil;
 	_cachedMaxHeight = kJBBarChartViewUndefinedCachedHeight;
 }
 
+- (void)didMoveToWindow {
+	[super didMoveToWindow];
+	if (self.delayReload && self.window)
+	{
+		[self reloadDataAnimated:NO];
+	}
+}
+
 - (void)setBounds:(CGRect)bounds {
     BOOL sizeChanged = !CGSizeEqualToSize(bounds.size, self.bounds.size);
     [super setBounds:bounds];
     if (sizeChanged && self.dataSource) {
-        [self reloadDataAnimated:YES];
+        [self reloadDataAnimated:NO];
     }
 }
 
@@ -132,7 +141,7 @@ static UIColor *kJBBarChartViewDefaultBarColor = nil;
     BOOL sizeChanged = !CGSizeEqualToSize(frame.size, self.frame.size);
     [super setFrame:frame];
     if (sizeChanged && self.dataSource) {
-        [self reloadDataAnimated:YES];
+        [self reloadDataAnimated:NO];
     }
 }
 
@@ -151,6 +160,14 @@ static UIColor *kJBBarChartViewDefaultBarColor = nil;
 	{
 		return;
 	}
+
+	if (!self.window)
+	{
+		self.delayReload = YES;
+		return;
+	}
+
+    self.delayReload = NO;
 	
 	self.reloading = YES;
 	
